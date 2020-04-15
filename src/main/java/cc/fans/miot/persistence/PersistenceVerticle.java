@@ -1,8 +1,6 @@
 package cc.fans.miot.persistence;
 
 import cc.fans.miot.module.Device;
-import io.vertx.cassandra.CassandraClient;
-import io.vertx.cassandra.CassandraClientOptions;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.eventbus.EventBus;
@@ -10,17 +8,15 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.eventbus.MessageConsumer;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.mongo.MongoClient;
 
 public class PersistenceVerticle extends AbstractVerticle {
 
-  private CassandraClient client;
+  private MongoClient mongoClient;
 
   @Override
   public void start(Promise<Void> startFuture) throws Exception {
-    CassandraClientOptions options = new CassandraClientOptions()
-      .setKeyspace("miot");
-    client = CassandraClient.create(vertx, options);
-
+    connectMongoDb();
     EventBus eventBus = vertx.eventBus();
     MessageConsumer<JsonObject> consumer = eventBus.consumer("persistence");
 
@@ -36,10 +32,28 @@ public class PersistenceVerticle extends AbstractVerticle {
     });
   }
 
+  private void connectMongoDb() {
+    JsonObject config = new JsonObject()
+        .put("db_name", "admin")
+        .put("host", "localhost")
+        .put("port", 27017)
+        .put("username", "miot")
+        .put("password", "abcd1234");
+    System.setProperty("org.mongodb.async.type", "netty");
+    mongoClient = MongoClient.createShared(vertx, config, "MONGO_POOL");
+  }
+
   private void registerDevice(Message<JsonObject> message) {
     Device device = Json.decodeValue(message.body().getJsonObject("device").toString(), Device.class);
-    device.setId("1");
     device.setToken("cc.fans.device");
-    message.reply(Json.encodePrettily(device.toConduitJson()));
+    mongoClient.insert("device", device.toConduitJson(), res -> {
+      if (res.succeeded()) {
+        String id = res.result();
+        device.setId(id);
+        message.reply(Json.encodePrettily(device.toConduitJson()));
+      } else {
+        message.fail(2, "Insert failed: " + res.cause().getMessage());
+      }
+    });
   }
 }

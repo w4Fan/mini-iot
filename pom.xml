@@ -11,6 +11,7 @@
 
   <properties>
     <vertx.version>3.9.0</vertx.version>
+    <junit.version>4.12</junit.version>
     <main.verticle>cc.fans.miot.MainVerticle</main.verticle>
   </properties>
 
@@ -35,19 +36,16 @@
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
     </dependency>
+
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-cassandra-client</artifactId>
+      <artifactId>vertx-mongo-client</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.flywaydb</groupId>
-      <artifactId>flyway-core</artifactId>
-      <version>6.3.3</version>
-    </dependency>
+
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.12</version>
+      <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
