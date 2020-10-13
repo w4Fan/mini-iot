@@ -11,7 +11,7 @@
 
   <properties>
     <vertx.version>3.9.0</vertx.version>
-    <junit.version>4.12</junit.version>
+    <junit.version>4.13.1</junit.version>
     <main.verticle>cc.fans.miot.MainVerticle</main.verticle>
   </properties>
 
